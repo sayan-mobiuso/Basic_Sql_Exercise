@@ -1,0 +1,94 @@
+Exercise 1
+Using the chinook database, write SQLite queries to answer the following questions in DB Browser. 
+
+Q.1 What is the title of the album with AlbumId 67? 
+ code =  SELECT Title FROM albums WHERE AlbumId=67
+
+Q.2 Find the name and length (in seconds) of all tracks that have length between 50 and 70 seconds. 
+code = SELECT name, milliseconds/1000 FROM tracks  WHERE milliseconds/1000 between 50 and 70;
+
+Q.3 List all the albums by artists with the word ‘black’ in their name. 
+code = SELECT albums.title FROM albums JOIN artists on albums.ArtistID = artists.ArtistID WHERE albums.title LIKE '%black%'
+
+Q.4 Provide a query showing a unique/distinct list of billing countries from the Invoice table 
+code =  SELECT DISTINCT BillingCountry FROM invoices;
+
+
+Q.5 Display the city with highest sum total invoice.
+code = SELECT BillingCity,ROUND(SUM(total),0)AS total FROM invoices GROUP BY BillingCity ORDER BY total desc limit 1;
+ 
+Q.6 Produce a table that lists each country and the number of customers in that country. (You only need to include countries that have customers) in descending order. (Highest count at the top)
+code = SELECT country,COUNT(CustomerId)AS total_customers FROM customers  GROUP BY country HAVING total_customers > 0 order by total_customers desc 
+
+ 
+Q.7 Find the top five customers in terms of sales i.e. find the five customers whose total combined invoice amounts are the highest. Give their name, CustomerId and total invoice amount. Use join
+
+code = SELECT customers.customerId ,customers.firstname,customers.lastname,ROUND(SUM(invoices.total),0) AS total from customers join invoices on customers.customerId = invoices.customerId GROUP BY customers.customerId order by total desc limit 5;
+
+
+ 
+Q.8 Find out state wise count of customerID and list the names of states with count of customerID in decreasing order. Note:- do not include where states is null value. 
+
+code = SELECT COUNT(CustomerId)AS total_customer,State FROM customers WHERE State IS NOT NULL GROUP BY State order by total_customer desc;
+
+Q.9 How many Invoices were there in 2009 and 2011? 
+ code = SELECT COUNT(InvoiceDate),strftime('%Y',InvoiceDate)AS year FROM invoices WHERE year IN('2009','2011') GROUP BY year;
+
+Q.10 Provide a query showing only the Employees who are Sales Agents.
+code =  SELECT firstName || ' ' || lastName AS Fullname FROM 'employees'WHERE Title = "Sales Support Agent";
+
+===================================================================================================================================================================
+
+Exercise 2
+Using the chinook database, write SQLite queries to answer the following questions in DB Browser.
+
+Q.1 Display Most used media types: their names and count in descending order. 
+
+   code = SELECT media_types.Name,COUNT (media_types.Name)AS total  FROM 'media_types' JOIN tracks ON media_types.MediaTypeid = tracks.MediaTypeid GROUP BY tracks.MediaTypeid order by total desc;
+
+Q.2 Provide a query showing the Invoices of customers who are from Brazil. The resultant table should show the customer's full name, Invoice ID, Date of the invoice and billing country. 
+  code = SELECT customers.firstname ||"  "||customers.lastname AS Fullname, invoices.InvoiceId,invoices.InvoiceDate,invoices.BillingCountry FROM invoices JOIN customers ON invoices.CustomerId = customers.CustomerId WHERE invoices.BillingCountry = 'Brazil';
+
+
+Q.3 Display artist name and total track count of the top 10 rock bands from dataset. 
+ code = SELECT artists.Name AS name, COUNT(tracks.Name) AS count
+FROM artists
+JOIN albums ON artists.ArtistId = albums.ArtistId
+JOIN tracks ON albums.AlbumId = tracks.AlbumId
+JOIN genres ON genres.GenreId = tracks.GenreId
+WHERE genres.GenreId = 1
+GROUP BY artists.Name
+ORDER BY count desc
+LIMIT 10
+
+Q.4 Display the Best customer (in case of amount spent). Full name (first name and last name) 
+  code = customers.firstname ||" "||customers.lastname AS FullName,ROUND(SUM(invoices.total),0)AS total FROM customers JOIN invoices ON customers.CustomerId = invoices.CustomerId GROUP BY invoices.CustomerId ORDER BY total DESC LIMIT 1;
+
+Q.5 Provide a query showing Customers (just their full names, customer ID and country) who are not in the US.
+   code = SELECT CustomerId,customers.FirstName ||" "||customers.LastName AS FullName,Country FROM customers WHERE Country != 'USA';
+
+Q.6 Provide a query that shows the total number of tracks in each playlist in descending order. The Playlist name should be included on the resultant table. 
+  code = SELECT p.name, COUNT(pt.trackid) AS total_track FROM playlists p
+JOIN playlist_track pt ON p.playlistid = pt.playlistid
+GROUP BY p.Name
+ORDER by total_track DESC;
+  
+Q.7 Provide a query that shows all the Tracks, but displays no IDs. The result should include the Album name, Media type and Genre.
+  code = SELECT albums.title AS Albums,tracks.Name AS Tracks,media_types.Name AS Format,genres.Name AS Type FROM albums JOIN tracks ON albums.AlbumId = tracks.AlbumId JOIN media_types ON media_types.MediaTypeId = tracks.MediaTypeId JOIN genres ON genres.GenreId = tracks.GenreId; 
+    
+Q.8 Provide a query that shows the top 10 bestselling artists. (In terms of earning).
+
+code = SELECT artists.Name AS Artist, SUM(invoice_items.UnitPrice * invoice_items.Quantity) AS TotalEarnings
+FROM artists
+JOIN albums ON artists.ArtistId = albums.ArtistId
+JOIN tracks ON albums.AlbumId = tracks.AlbumId
+JOIN invoice_items ON tracks.TrackId = invoice_items.TrackId
+GROUP BY artists.Name
+ORDER BY TotalEarnings DESC
+LIMIT 10;
+ 
+Q.9 Provide a query that shows the most purchased Media Type.
+  code = SELECT  media_types.Name, COUNT(*) AS total FROM media_types JOIN tracks ON media_types.MediaTypeId = tracks.MediaTypeId JOIN invoice_items ON invoice_items.TrackId = tracks.TrackId GROUP BY media_types.Name ORDER BY total desc limit 1 
+Q.10 Provide a query that shows the purchased tracks of 2013. Display Track name and Units sold. 
+
+code = SELECT tracks.Name  AS purchased_track_2013,SUM(invoice_items.Quantity) AS UNITS_SOLD  FROM tracks JOIN invoice_items ON tracks.TrackId = invoice_items.TrackId JOIN invoices ON invoice_items.InvoiceId = invoices.InvoiceId WHERE strftime('%Y',invoices.InvoiceDate) = "2013"  GROUP BY tracks.Name
